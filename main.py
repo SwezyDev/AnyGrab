@@ -72,10 +72,10 @@ def grab(anydesk_pid):
 
 
 def main():
-    os.system("mode 83,30") # Set console size
+    os.system("mode 83,30" if os.name == "nt" else "printf '\e[8;30;83t'") # Set console size
     
     while True:
-        os.system("cls") # Clear the console
+        os.system("cls" if os.name == "nt" else "clear") # Clear the console
         gradient_print(utility.logo, start_color=Color.ghost_white, end_color=Color.sky_blue) # Print the logo
         gradient_scroll("[+] Waiting for AnyDesk", start_color=Color.ghost_white, end_color=Color.violet) # Print waiting message
 
