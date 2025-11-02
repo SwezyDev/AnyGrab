@@ -63,7 +63,7 @@ def grab(anydesk_pid):
                             continue # Continue to the next iteration
 
             for ip, port in anydesk_addy.items(): # Iterate over the AnyDesk addresses
-                if not ip.startswith("169.254.") and port not in [80, 443] and ip not in BLACKLIST: # Ignore local link addresses and check blacklist
+                if not ip.startswith("169.254.") and not ip == "127.0.0.1" and port not in [80, 443] and ip not in BLACKLIST: # Ignore local link addresses and check blacklist
                     gradient_print(f" [!] {ip}:{port}", start_color=Color.ghost_white, end_color=Color.sky_blue) # Print the address
                     BLACKLIST.add(ip) # Add the address to the blacklist
 
