@@ -81,7 +81,7 @@
 ## ⚙️ Technical Details
 
 * Uses `psutil` to detect running AnyDesk processes.
-* Uses `subprocess` with `netstat` to capture TCP connections.
+* Uses `socket` to capture TCP connections.
 * Filters out **LISTENING** ports and local-link addresses.
 * Console transparency is implemented via `ctypes` and Windows API.
 * Gradient and scrolling effects are handled via the `rgbprint` library.
