@@ -34,33 +34,27 @@ class utility:
         pids = []
         for p in psutil.process_iter(["pid", "name"]): # Iterate over all processes
             if "anydesk" in p.info["name"].lower(): # Check if the process name contains "anydesk"
-                pids.append(str(p.info["pid"])) # Add the PID to the list
+                pids.append(p.info["pid"]) # Add the PID to the list
         return pids # Return the list of AnyDesk PIDs
-
 
 def grab(anydesk_pid):
     gradient_print(f"[#] AnyGrab is Connected! --> {anydesk_pid}", start_color=Color.ghost_white, end_color=Color.sky_blue) # Print running message
 
     while True: # Infinite loop to monitor AnyDesk connections
         try: # Try block to handle exceptions
-            output = subprocess.check_output("netstat -p TCP -n -a -o", shell=True).decode(errors="ignore").splitlines() # Get netstat output
             anydesk_pids = utility.find_anydesk() # Find AnyDesk PIDs
             anydesk_addy = {} # Reset AnyDesk addresses
 
-            for line in output: # Iterate over netstat output lines
-                for pid in anydesk_pids: # Iterate over AnyDesk PIDs
-                    if pid in line and "LISTENING" not in line: # Check if the line contains the PID and is not listening
-                        try: # Try block to handle exceptions
-                            parts = line.split() # Split the line into parts
-                            if len(parts) < 5:  # Skip malformed lines
-                                continue # Continue to the next line
-                            remote = parts[2] # Get the remote address
-                            if ':' not in remote: # Check if the remote address is valid
-                                continue # Continue to the next line
-                            ip_, port_ = remote.rsplit(":", 1) # Split the remote address into IP and port
-                            anydesk_addy[ip_] = int(port_) # Store the IP and port in the dictionary
-                        except Exception: # Handle exceptions
-                            continue # Continue to the next iteration
+            for con in psutil.net_connections(kind="tcp"): # Iterate over all TCP connections
+                if con.pid not in anydesk_pids: # Check if the connection belongs to AnyDesk
+                    continue # Continue to the next connection
+                if con.status == psutil.CONN_LISTEN: # Check if the socket is listening
+                    continue # Continue to the next connection
+                if not con.raddr: # Check if the remote address is valid
+                    continue # Continue to the next connection
+
+                ip_, port_ = con.raddr.ip, con.raddr.port # Split the remote address into IP and port
+                anydesk_addy[ip_] = port_ # Store the IP and port in the dictionary
 
             for ip, port in anydesk_addy.items(): # Iterate over the AnyDesk addresses
                 if not ip.startswith("169.254.") and not ip == "127.0.0.1" and port not in [80, 443] and ip not in BLACKLIST: # Ignore local link addresses and check blacklist
